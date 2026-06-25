@@ -1,0 +1,6 @@
+{
+  "name": "ZeroHour",
+  "description": "An AI productivity companion that plans, prioritizes, and auto-generates minimal achievable rescue checklists when a deadline is dangerously close.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,120 @@
+{
+  "entities": {
+    "Task": {
+      "title": "Task",
+      "description": "An objective/task scheduled by the operator with tight deadlines.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique ID of the task."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The unique ID of the operator."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the task."
+        },
+        "deadline": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 deadline string."
+        },
+        "estimatedEffortMinutes": {
+          "type": "integer",
+          "description": "Minutes required to complete."
+        },
+        "category": {
+          "type": "string",
+          "description": "Custom or pre-set task category."
+        },
+        "priorityScore": {
+          "type": "number",
+          "description": "Calculated priority."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["not_started", "in_progress", "rescue_mode", "completed"]
+        },
+        "rescueChecklist": {
+          "type": "array",
+          "description": "Achievable checklist for rescue mode."
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "emailSentAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "userId", "title", "deadline", "estimatedEffortMinutes", "category", "priorityScore", "status", "createdAt"]
+    },
+    "UserStats": {
+      "title": "UserStats",
+      "description": "The operator stats dossier tracking streaks and objectives.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "streakCount": {
+          "type": "integer"
+        },
+        "lastCompletedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "totalCompletedOnTime": {
+          "type": "integer"
+        },
+        "totalCompleted": {
+          "type": "integer"
+        },
+        "focusSummary": {
+          "type": "string"
+        },
+        "focusSummaryUpdatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "streakCount", "totalCompletedOnTime", "totalCompleted"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "System settings for available hours.",
+      "type": "object",
+      "properties": {
+        "dailyAvailableHours": {
+          "type": "integer"
+        },
+        "notificationEmail": {
+          "type": "string"
+        }
+      },
+      "required": ["dailyAvailableHours"]
+    }
+  },
+  "firestore": {
+    "tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Individual objectives tracked for the user."
+    },
+    "userStats/{userId}": {
+      "schema": "UserStats",
+      "description": "Stats dossier for the authenticated operator."
+    },
+    "settings/{userId}": {
+      "schema": "Settings",
+      "description": "Custom availability configuration."
+    }
+  }
+}
