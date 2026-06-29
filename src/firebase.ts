@@ -28,7 +28,9 @@ import {
   onAuthStateChanged,
   Auth,
   signInWithPopup,
-  GoogleAuthProvider
+  GoogleAuthProvider,
+  setPersistence,
+  browserLocalPersistence
 } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 
@@ -47,6 +49,9 @@ const db: Firestore = getFirestore(app, firebaseConfig.firestoreDatabaseId || '(
 
 // Initialize Auth
 const auth: Auth = getAuth(app);
+setPersistence(auth, browserLocalPersistence).catch((err) => {
+  console.error('Error setting auth persistence:', err);
+});
 
 // Standardized Firestore Error Handling based on firebase-integration skill
 export enum OperationType {

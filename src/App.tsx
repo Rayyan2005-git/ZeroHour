@@ -181,14 +181,29 @@ export default function App() {
     // --- Settings Document Listener & Bootstrap ---
     const settingsDocRef = doc(db, 'settings', user.uid);
     const unsubscribeSettings = onSnapshot(settingsDocRef, async (docSnap) => {
+      let currentSettings: Settings;
       if (docSnap.exists()) {
-        setUserSettings(docSnap.data() as Settings);
+        currentSettings = docSnap.data() as Settings;
       } else {
         // Default to 6 available hours
-        const defaultSettings: Settings = { dailyAvailableHours: 6 };
-        await setDoc(settingsDocRef, defaultSettings);
-        setUserSettings(defaultSettings);
+        currentSettings = { dailyAvailableHours: 6 };
       }
+
+      // Auto-fill notificationEmail from user.email if empty/unset and user is a real account (non-anonymous)
+      if (user && !user.isAnonymous && user.email) {
+        if (!currentSettings.notificationEmail || currentSettings.notificationEmail.trim() === '') {
+          console.log(`[Auto-fill Email] Automatically setting notificationEmail to account email: ${user.email}`);
+          currentSettings = {
+            ...currentSettings,
+            notificationEmail: user.email
+          };
+          await setDoc(settingsDocRef, currentSettings);
+        }
+      } else if (!docSnap.exists()) {
+        await setDoc(settingsDocRef, currentSettings);
+      }
+
+      setUserSettings(currentSettings);
     });
 
     return () => {
@@ -252,6 +267,61 @@ export default function App() {
     const intervalId = setInterval(checkAndSendAlerts, 2 * 60 * 1000);
     return () => clearInterval(intervalId);
   }, [tasks, userSettings]);
+
+  // 4. Client-Side Global Background Check for Rescue Mode
+  useEffect(() => {
+    if (!tasks || tasks.length === 0) return;
+
+    const checkAndTriggerRescue = async () => {
+      const now = Date.now();
+
+      for (const task of tasks) {
+        if (task.status === 'completed' || task.status === 'rescue_mode' || task.rescueChecklist) continue;
+
+        const deadlineTime = new Date(task.deadline).getTime();
+        const msDiff = deadlineTime - now;
+        const hoursRemaining = msDiff / (1000 * 60 * 60);
+
+        if (hoursRemaining < 3) {
+          console.log(`[Global Rescue Trigger] Task "${task.title}" has ${hoursRemaining.toFixed(2)}h remaining. Triggering automatic Rescue Mode...`);
+          try {
+            const hoursLeft = hoursRemaining > 0 ? hoursRemaining : 2;
+            const response = await fetch('/api/tasks/rescue', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                title: task.title,
+                category: task.category,
+                estimatedEffortMinutes: task.estimatedEffortMinutes,
+                hoursRemaining: hoursLeft
+              })
+            });
+
+            if (response.ok) {
+              const checklist = await response.json();
+              console.log(`[Global Rescue Trigger] Checklist received for "${task.title}". Writing back to Firestore...`);
+              await updateDoc(doc(db, 'tasks', task.id), {
+                status: 'rescue_mode',
+                rescueChecklist: checklist
+              });
+            } else {
+              const errData = await response.json().catch(() => ({}));
+              console.error(`[Global Rescue Trigger] Server returned error for "${task.title}":`, errData);
+            }
+          } catch (err) {
+            console.error(`[Global Rescue Trigger] Error executing background Rescue Mode for "${task.title}":`, err);
+          }
+        }
+      }
+    };
+
+    // Run check immediately
+    checkAndTriggerRescue();
+
+    // Re-check every 2 minutes
+    const intervalId = setInterval(checkAndTriggerRescue, 2 * 60 * 1000);
+    return () => clearInterval(intervalId);
+  }, [tasks]);
 
   const handleUpdateSettings = async (newSettings: Settings) => {
     if (!user) return;

@@ -66,14 +66,6 @@ export default function TaskDetail({ taskId, tasks, stats, onNavigate }: TaskDet
       } else {
         setCountdownStr(`${mins}m remaining`);
       }
-
-      // 4. Automatic Rescue Mode Trigger:
-      // When a task has less than 3 hours left, status is not_started/in_progress,
-      // and it does not already have a rescue checklist, automatically trigger Rescue Mode!
-      const hoursRemaining = msDiff / (1000 * 60 * 60);
-      if (hoursRemaining < 3 && task.status !== 'rescue_mode' && !task.rescueChecklist) {
-        triggerAutomaticRescue(task, hoursRemaining);
-      }
     };
 
     updateCountdown();
@@ -370,7 +362,7 @@ export default function TaskDetail({ taskId, tasks, stats, onNavigate }: TaskDet
                   Rescue Checklist Active
                 </h3>
               </div>
-              <span className="text-[10px] font-mono text-rose-750 font-bold bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-mono text-rose-700 font-bold bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-full">
                 {rescueItemsCompleted} / {rescueItemsCount} Salvaged
               </span>
             </div>

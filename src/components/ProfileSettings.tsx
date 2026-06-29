@@ -122,7 +122,7 @@ export default function ProfileSettings({
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">Operator Rank</span>
               <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
-                isAnonymous ? 'bg-amber-50 text-amber-755 border border-amber-200' : 'bg-emerald-50 text-emerald-755 border border-emerald-200'
+                isAnonymous ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
               }`}>
                 {isAnonymous ? 'ANONYMOUS TERM' : 'IDENTIFIED TERM'}
               </span>
